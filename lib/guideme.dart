@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:guideme/page/drawer.dart';
-import 'package:guideme/page/settings/settings.dart';
-import 'package:guideme/page/home.dart';
-import 'package:guideme/page/notifications.dart';
-import 'package:guideme/page/find_guide.dart';
-import 'package:guideme/page/tour_plan.dart';
+import 'package:guideme/cubit/booking/booking_cubit.dart';
+import 'package:guideme/cubit/location/location_cubit.dart';
+import 'package:guideme/cubit/tourguide/tourguide_cubit.dart';
+import 'package:guideme/cubit/tourplan/tourplan_cubit.dart';
+import 'package:guideme/cubit/user/user_cubit.dart';
+import 'package:guideme/screens/drawer.dart';
+import 'package:guideme/screens/home_screen.dart';
+import 'package:guideme/screens/notifications_screen.dart';
+import 'package:guideme/screens/find_guide_screen.dart';
+import 'package:guideme/screens/tourplan_screen.dart';
+import 'package:guideme/services/data_services.dart';
 
 class GuideMe extends StatefulWidget {
   const GuideMe({super.key});
@@ -16,12 +22,29 @@ class GuideMe extends StatefulWidget {
 
 class _GuideMeState extends State<GuideMe> {
   int pageIndex = 0;
+  String? userId = "";
 
   List<Widget> pageList = [
-    const Home(),
+    const HomeScreen(),
     const TourPlans(),
     const FindGuide(),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    fetchUserId();
+    BlocProvider.of<LocationCubit>(context).fetchLocations();
+    BlocProvider.of<TourGuideCubit>(context).fetchTourGuides();
+    BlocProvider.of<TourGuideCubit>(context).fetchTourGuidesByRating();
+    BlocProvider.of<UserCubit>(context).fetchOneCustomer();
+    BlocProvider.of<TourPlanCubit>(context).fetchTourPlans();
+    BlocProvider.of<BookingCubit>(context).fetchBookings();
+  }
+
+  void fetchUserId() async {
+    userId = await DataService.getUserId();
+  }
 
   void navigatePage(int pageIndex) {
     setState(() {
@@ -40,7 +63,7 @@ class _GuideMeState extends State<GuideMe> {
                 icon: const Icon(
                   Icons.menu,
                   color: Colors.white,
-                ), // Replace with your desired icon
+                ), 
                 onPressed: () => Scaffold.of(context).openDrawer(),
               ),
             ),
@@ -82,14 +105,10 @@ class _GuideMeState extends State<GuideMe> {
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10))),
                 onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => const Settings(),
-                    ),
-                  );
+                  Navigator.of(context).pushNamed('/profile-screen');
                 },
                 icon: const Icon(
-                  Icons.settings,
+                  Icons.person,
                   size: 25,
                   color: Colors.white,
                 ),
